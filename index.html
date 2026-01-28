@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Playlist</title>
+<style>
+    body {
+        display: flex;
+        font-family: Arial, sans-serif;
+        background-color: #111;
+        color: #fff;
+        height: 100vh;
+        margin: 0;
+    }
+    #playlist {
+        width: 250px;
+        overflow-y: auto;
+        border-right: 2px solid #333;
+        padding: 10px;
+        box-sizing: border-box;
+    }
+    #playlist div {
+        padding: 10px;
+        cursor: pointer;
+        border-bottom: 1px solid #333;
+    }
+    #playlist div.active {
+        background-color: #333;
+    }
+    #player {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        gap: 20px;
+        padding: 20px;
+    }
+    #controls {
+        display: flex;
+        gap: 15px;
+    }
+    button {
+        width: 128px;
+        height: 128px;
+        background-size: cover;
+        border: none;
+        cursor: pointer;
+    }
+    #currentSong {
+        font-size: 1.5em;
+        text-align: center;
+    }
+    #seekBar {
+        width: 80%;
+    }
+</style>
+</head>
+<body>
+
+<div id="playlist"></div>
+
+<div id="player">
+    <div id="currentSong">No song playing</div>
+    <input type="range" id="seekBar" min="0" max="100" value="0">
+    <div id="controls">
+        <button id="prev" style="background-image: url('PL_Previous.png');"></button>
+        <button id="rewind" style="background-image: url('PL_Rewind.png');"></button>
+        <button id="back5" style="background-image: url('PL_5SecBack.png');"></button>
+        <button id="skip" style="background-image: url('PL_Skip.png');"></button>
+        <button id="forward5" style="background-image: url('PL_5SecForward.png');"></button>
+        <button id="loop" style="background-image: url('PL_Loop.png');"></button>
+    </div>
+</div>
+
+<audio id="audio"></audio>
+
+<script>
+const songs = [
+    {name: "Classical VIP", file: "ClassicalVIP.mp3"},
+    {name: "Jawbreaker", file: "Jawbreaker.mp3"}
+];
+
+let currentIndex = 0;
+let loop = false;
+
+const audio = document.getElementById('audio');
+const playlistDiv = document.getElementById('playlist');
+const currentSongDiv = document.getElementById('currentSong');
+const seekBar = document.getElementById('seekBar');
+
+// Populate playlist
+function renderPlaylist() {
+    playlistDiv.innerHTML = '';
+    songs.forEach((song, index) => {
+        const div = document.createElement('div');
+        div.textContent = song.name;
+        div.addEventListener('click', () => {
+            currentIndex = index;
+            playSong();
+        });
+        playlistDiv.appendChild(div);
+    });
+    highlightCurrentSong();
+}
+
+function highlightCurrentSong() {
+    [...playlistDiv.children].forEach((div, i) => {
+        div.classList.toggle('active', i === currentIndex);
+    });
+}
+
+function playSong() {
+    audio.src = songs[currentIndex].file;
+    audio.play();
+    currentSongDiv.textContent = songs[currentIndex].name;
+    highlightCurrentSong();
+}
+
+// Button controls
+document.getElementById('skip').addEventListener('click', () => nextSong());
+document.getElementById('prev').addEventListener('click', () => prevSong());
+document.getElementById('rewind').addEventListener('click', () => audio.currentTime = 0);
+document.getElementById('forward5').addEventListener('click', () => audio.currentTime += 5);
+document.getElementById('back5').addEventListener('click', () => audio.currentTime -= 5);
+document.getElementById('loop').addEventListener('click', () => loop = !loop);
+
+// Next/Previous song
+function nextSong() {
+    if(loop) {
+        playSong();
+    } else {
+        currentIndex = (currentIndex + 1) % songs.length;
+        playSong();
+    }
+}
+
+function prevSong() {
+    currentIndex = (currentIndex - 1 + songs.length) % songs.length;
+    playSong();
+}
+
+// Seek bar
+audio.addEventListener('timeupdate', () => {
+    seekBar.value = (audio.currentTime / audio.duration) * 100 || 0;
+});
+
+seekBar.addEventListener('input', () => {
+    audio.currentTime = (seekBar.value / 100) * audio.duration;
+});
+
+// Keyboard shortcuts
+document.addEventListener('keydown', (e) => {
+    if(e.key === "ArrowRight") audio.currentTime += 5;
+    if(e.key === "ArrowLeft") audio.currentTime -= 5;
+});
+
+// Auto next song
+audio.addEventListener('ended', () => nextSong());
+
+renderPlaylist();
+</script>
+
+</body>
+</html>
