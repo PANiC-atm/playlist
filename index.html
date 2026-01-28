@@ -40,13 +40,17 @@
     #controls {
         display: flex;
         gap: 15px;
+        flex-wrap: wrap;
     }
     button {
         width: 128px;
         height: 128px;
         background-size: cover;
+        background-repeat: no-repeat;
+        background-position: center;
         border: none;
         cursor: pointer;
+        background-color: transparent; /* Make fully transparent */
     }
     #currentSong {
         font-size: 1.5em;
@@ -65,10 +69,11 @@
     <div id="currentSong">No song playing</div>
     <input type="range" id="seekBar" min="0" max="100" value="0">
     <div id="controls">
-        <button id="prev" style="background-image: url('PL_Previous.png');"></button>
+        <button id="play" style="background-image: url('PL_Paused.png');"></button>
         <button id="rewind" style="background-image: url('PL_Rewind.png');"></button>
-        <button id="back5" style="background-image: url('PL_5SecBack.png');"></button>
+        <button id="prev" style="background-image: url('PL_Previous.png');"></button>
         <button id="skip" style="background-image: url('PL_Skip.png');"></button>
+        <button id="back5" style="background-image: url('PL_5SecBack.png');"></button>
         <button id="forward5" style="background-image: url('PL_5SecForward.png');"></button>
         <button id="loop" style="background-image: url('PL_Loop.png');"></button>
     </div>
@@ -89,6 +94,14 @@ const audio = document.getElementById('audio');
 const playlistDiv = document.getElementById('playlist');
 const currentSongDiv = document.getElementById('currentSong');
 const seekBar = document.getElementById('seekBar');
+
+const playButton = document.getElementById('play');
+const rewindButton = document.getElementById('rewind');
+const prevButton = document.getElementById('prev');
+const skipButton = document.getElementById('skip');
+const back5Button = document.getElementById('back5');
+const forward5Button = document.getElementById('forward5');
+const loopButton = document.getElementById('loop');
 
 // Populate playlist
 function renderPlaylist() {
@@ -115,16 +128,31 @@ function playSong() {
     audio.src = songs[currentIndex].file;
     audio.play();
     currentSongDiv.textContent = songs[currentIndex].name;
+    playButton.style.backgroundImage = "url('PL_Playing.png')";
     highlightCurrentSong();
 }
 
 // Button controls
-document.getElementById('skip').addEventListener('click', () => nextSong());
-document.getElementById('prev').addEventListener('click', () => prevSong());
-document.getElementById('rewind').addEventListener('click', () => audio.currentTime = 0);
-document.getElementById('forward5').addEventListener('click', () => audio.currentTime += 5);
-document.getElementById('back5').addEventListener('click', () => audio.currentTime -= 5);
-document.getElementById('loop').addEventListener('click', () => loop = !loop);
+playButton.addEventListener('click', () => {
+    if(audio.paused) {
+        audio.play();
+        playButton.style.backgroundImage = "url('PL_Playing.png')";
+    } else {
+        audio.pause();
+        playButton.style.backgroundImage = "url('PL_Paused.png')";
+    }
+});
+
+skipButton.addEventListener('click', () => nextSong());
+prevButton.addEventListener('click', () => prevSong());
+rewindButton.addEventListener('click', () => audio.currentTime = 0);
+forward5Button.addEventListener('click', () => audio.currentTime += 5);
+back5Button.addEventListener('click', () => audio.currentTime -= 5);
+
+loopButton.addEventListener('click', () => {
+    loop = !loop;
+    loopButton.style.backgroundImage = loop ? "url('PL_LoopOn.png')" : "url('PL_Loop.png')";
+});
 
 // Next/Previous song
 function nextSong() {
